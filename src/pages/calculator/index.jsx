@@ -8,7 +8,9 @@ import {
   Space,
 } from 'antd-mobile';
 
-const total = 400;
+const urlTotalParams = new URLSearchParams(window.location.search.substring(1)).get('total');
+console.log(urlTotalParams,'debuggr');
+const total = +urlTotalParams || 400;
 
 function calcAmount (ratio) {
   return parseInt(total * (ratio / 100))
