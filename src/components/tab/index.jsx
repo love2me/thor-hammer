@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from "react-router-dom";
 
 import { TabBar } from 'antd-mobile';
 import { AppOutline, UnorderedListOutline } from 'antd-mobile-icons';
@@ -7,18 +8,18 @@ import './index.css';
 function Tabbar() {
   const tabs = [
     {
-      key: 'calculator',
+      key: '/index',
       title: '计算器',
       icon: <AppOutline />,
     },
     {
-      key: 'todo',
-      title: '待办',
+      key: '/practice',
+      title: '练习',
       icon: <UnorderedListOutline />,
     },
   ];
 
-  const [activeKey, setActiveKey] = useState('calculator');
+  const [activeKey, setActiveKey] = useState('/index');
 
   return (
     <TabBar
@@ -29,7 +30,7 @@ function Tabbar() {
       }}
     >
       {tabs.map((item) => (
-        <TabBar.Item key={item.key} icon={item.icon} title={item.title} />
+        <TabBar.Item key={item.key} icon={item.icon}><Link to={item.key}>{item.title}</Link></TabBar.Item>
       ))}
     </TabBar>
   );

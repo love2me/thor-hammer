@@ -2,7 +2,8 @@ import * as React from 'react';
 
 import { Routes, Route, HashRouter } from 'react-router-dom';
 import Tab from './components/tab';
-import routes from './routes';
+import Calculator from './pages/calculator';
+import Practice from './pages/practice';
 
 import './App.css';
 
@@ -11,12 +12,11 @@ function App() {
     <HashRouter>
       <div className="wrapper">
         <Routes>
-          {routes.map(({ path, element }, idx) => {
-            return <Route index={idx === 0} path={path} element={element} />;
-          })}
+          <Route path="/index" element={<Calculator/>} />
+          <Route path="/practice" element={<Practice/>} />
         </Routes>
       </div>
-      <Tab />
+      {/** <Tab /> */}
     </HashRouter>
   );
 }
