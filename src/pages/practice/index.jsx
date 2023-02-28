@@ -11,11 +11,31 @@ import {
   DatePicker,
 } from 'antd-mobile';
 import dayjs from 'dayjs';
+import { getKLine } from './request';
+import { useRef } from 'react';
 
 const now = new Date();
+
+function parseChartData (data) {
+  return data.map((kline) => {
+    const time = kline[0] / 1000; 
+    const open = +kline[1];
+    const high = +kline[2];
+    const low = +kline[3];
+    const close = +kline[4];
+    return {
+      time,
+      open,
+      high,
+      low,
+      close
+    }
+  })
+}
 function Practice() {
   const [currentTime, setCurrentTime] = useState(null);
   const [chartData, setChartData] = useState([]);
+  const chartRef = useRef(null);
   const getBnData = () => {
     setChartData();
   };
@@ -30,6 +50,13 @@ function Practice() {
     const newData = [];
     setChartData([...chartData, newData]);
   }
+
+  useEffect(() => {
+    getKLine().then((data) => {
+      chartRef?.current.initChart(parseChartData(data));
+      // setChartData()
+    });
+  }, [])
 
   return (
     <div>
@@ -76,7 +103,7 @@ function Practice() {
           />
         </Form.Item>
       </Form>
-      <Chart data={chartData} />
+      <Chart ref={chartRef} data={chartData} />
       <Button style={{marginLeft: 16}} color="primary" size="large">Next</Button>
       <Button style={{marginLeft: 16}} color="primary" size="large">Buy</Button>
       <Button style={{marginLeft: 16}} color="primary" size="large">Sell</Button>
