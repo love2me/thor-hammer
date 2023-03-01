@@ -1,5 +1,22 @@
 import axios from 'axios';
 
+function parseChartData (data) {
+  return data.map((kline) => {
+    const time = kline[0] / 1000; 
+    const open = +kline[1];
+    const high = +kline[2];
+    const low = +kline[3];
+    const close = +kline[4];
+    return {
+      time,
+      open,
+      high,
+      low,
+      close
+    }
+  })
+}
+
 export function getKLine () {
   return axios({
     method: 'get',
@@ -11,6 +28,6 @@ export function getKLine () {
       endTime: 1677513600000
     }
   }).then(res => {
-    return res?.data;
+    return parseChartData(res?.data);
   })
 }

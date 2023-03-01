@@ -2,13 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Chart from './chart';
 import {
   Form,
-  Input,
   Button,
-  Dialog,
-  Radio,
-  Space,
   Selector,
-  DatePicker,
 } from 'antd-mobile';
 import dayjs from 'dayjs';
 import { getKLine } from './request';
@@ -16,47 +11,135 @@ import { useRef } from 'react';
 
 const now = new Date();
 
-function parseChartData (data) {
-  return data.map((kline) => {
-    const time = kline[0] / 1000; 
-    const open = +kline[1];
-    const high = +kline[2];
-    const low = +kline[3];
-    const close = +kline[4];
-    return {
-      time,
-      open,
-      high,
-      low,
-      close
-    }
-  })
+const intervalTimeMapping = {
+  '15min': 900,
+  '1h': 3600,
+  '4h': 14400
 }
+
+function randomCurrentTime () {
+
+}
+
 function Practice() {
+  const [values, setValues] = useState({});
   const [currentTime, setCurrentTime] = useState(null);
-  const [chartData, setChartData] = useState([]);
+  const [tradingPosition, setTradingPosition] = useState(null);
+  const [tradeRecords, setTradeRecords] = useState([]);
+  const storageDataRef = useRef([]);
   const chartRef = useRef(null);
-  const getBnData = () => {
-    setChartData();
-  };
 
-  const parseParams = () => {};
-
-  const onFinish = (values) => {
-    setCurrentTime();
-  };
-
-  const onNext = () => {
-    const newData = [];
-    setChartData([...chartData, newData]);
+  const getPreOrNextTime = (time, type) => {
+    const { interval } = values;
+    const intervalTime = intervalTimeMapping[interval];
+    const count = 100;
+    if (type === 'pre') {
+      return time - (intervalTime * count)
+    }
+    if (type === 'next') {
+      return time + (intervalTime * count);
+    }
   }
 
-  useEffect(() => {
-    getKLine().then((data) => {
-      chartRef?.current.initChart(parseChartData(data));
-      // setChartData()
+  const getKLineData = ({
+    type,
+    currentTime,
+    interval, 
+    symbol
+  }) => {
+    const startTime = null;
+    const endTime = null;
+    if (type === 'pre') {
+      startTime = getPreOrNextTime(currentTime, 'pre');
+      endTime = currentTime;
+    }
+    if (type === 'next') {
+      startTime = currentTime;
+      endTime = getPreOrNextTime(currentTime, 'next');
+    }
+    return getKLine({
+      symbol,
+      startTime,
+      endTime,
+      interval
     });
-  }, [])
+  }
+
+  const getNextData = () => {
+    getKLineData({
+      ...values,
+      type: 'next',
+      currentTime
+    }).then((data) => {
+      storageDataRef.current = data;
+    })
+  }
+
+  const onFinish = (values) => {
+    const currentTime = 0;
+    setValues(values);
+    setCurrentTime(currentTime);
+    getKLineData({
+      ...values,
+      type: 'pre',
+      currentTime
+    }).then((data) => {
+      chartRef?.current?.initChart(data);
+      getNextData();
+    });
+  };
+
+  const updateNextData = () => {
+    const time = intervalTimeMapping[values[interval]]
+    chartRef?.current?.update(storageDataRef.current.shift());
+    setCurrentTime(currentTime + time);
+  }
+
+  const onNext = () => {
+    if (storageDataRef.current?.length > 0) {
+      updateNextData();
+    } else {
+      getNextData().then(() => {
+        updateNextData();
+      });
+    }
+  }
+
+  const onBuy = () => {
+    if (!tradingPosition) {
+      // 开多
+      setTradingPosition({
+        direction: 'long',
+        startPrice: currentPrice
+      })
+    } else {
+      // 平空
+      if (tradingPosition.direction === 'short') {
+        setTradeRecords([...tradeRecords, {
+          ...tradingPosition,
+          endPrice: currentPrice
+        }]);
+      }
+    }
+  }
+
+  const onSale = () => {
+    if (!tradingPosition) {
+      // 开空
+      setTradingPosition({
+        direction: 'short',
+        startPrice: currentPrice
+      })
+    } else {
+      // 平多
+      if (tradingPosition.direction === 'long') {
+        setTradeRecords([...tradeRecords, {
+          ...tradingPosition,
+          endPrice: currentPrice
+        }]);
+      }
+    }
+  }
 
   return (
     <div>
@@ -67,11 +150,11 @@ function Practice() {
         layout="vertical"
         footer={
           <Button block type="submit" color="primary">
-            开始
+            Start
           </Button>
         }
       >
-        <Form.Item name="category" label="品种">
+        <Form.Item name="symbol" label="Symbol">
           <Selector
             options={[
               { label: 'BTC', value: 'BTCUSDT' },
@@ -79,35 +162,30 @@ function Practice() {
             ]}
           />
         </Form.Item>
-        <Form.Item
-          name="starDay"
-          label="开始时间"
-          trigger="onConfirm"
-          onClick={(e, datePickerRef) => {
-            datePickerRef.current?.open();
-          }}
-        >
-          <DatePicker max={now}>
-            {(value) =>
-              value ? dayjs(value).format('YYYY-MM-DD') : '请选择日期'
-            }
-          </DatePicker>
-        </Form.Item>
-        <Form.Item name="section" label="区间">
+        <Form.Item name="interval" label="Interval">
           <Selector
             options={[
-              { label: '15Min', value: '15Min' },
-              { label: '1H', value: '1H' },
-              { label: '4H', value: '4H' }
+              { label: '15min', value: '15min' },
+              { label: '1h', value: '1h' },
+              { label: '4h', value: '4h' }
             ]}
           />
         </Form.Item>
       </Form>
       <Chart ref={chartRef} data={chartData} />
-      <Button style={{marginLeft: 16}} color="primary" size="large">Next</Button>
-      <Button style={{marginLeft: 16}} color="primary" size="large">Buy</Button>
-      <Button style={{marginLeft: 16}} color="primary" size="large">Sell</Button>
-    </div>
+      <Button style={{marginLeft: 16}} color="primary" size="large" onClick={onNext}>Next</Button>
+      <Button style={{marginLeft: 16}} color="primary" size="large" onClick={onBuy}>Buy</Button>
+      <Button style={{marginLeft: 16}} color="primary" size="large" onClick={onSale}>Sell</Button>
+
+      <H1>TradeRecord</H1>
+      <div>
+        {
+          tradeRecords.map((record) => {
+            return <div>{JSON.stringify(record)}</div>
+          })
+        }
+      </div>
+    </div> 
   );
 }
 
