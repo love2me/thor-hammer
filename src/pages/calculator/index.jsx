@@ -9,7 +9,6 @@ import {
 } from 'antd-mobile';
 
 const urlTotalParams = new URLSearchParams(window.location.search.substring(1)).get('total');
-console.log(urlTotalParams,'debuggr');
 const total = +urlTotalParams || 400;
 
 function calcAmount (ratio) {
@@ -46,9 +45,7 @@ const steps = [
 function Calculator() {
   const onFinish = (values) => {
     const { direction, startPrice, stoplessPrice, ratio } = values;
-    console.log(values,'debugger');
     const amount = steps.find((step) => step.ratio === ratio).amount;
-    console.log(amount);
     const res = parseInt(Math.abs(amount / ((+startPrice - +stoplessPrice) / +startPrice)));
     Dialog.alert({
       content: res,

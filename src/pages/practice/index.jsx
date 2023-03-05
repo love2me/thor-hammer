@@ -8,16 +8,33 @@ import { useRef } from 'react';
 const now = new Date();
 
 const intervalTimeMapping = {
-  '15min': 900,
-  '1h': 3600,
-  '4h': 14400,
+  '15min': 900000,
+  '1h': 3600000,
+  '4h': 14400000,
 };
 
 function randomCurrentTime() {
   const year = Math.floor(2020 + (Math.random() * 3));
   const month = Math.floor(1 + (Math.random() * 11));
   const day = Math.floor(1 + (Math.random() * 29));
-  return dayjs(`${year}-${month}-${day} 00:00:00`).unix();
+  return dayjs(`${year}-${month}-${day} 00:00:00`).valueOf();
+}
+
+function calc(direction, startPrice, endPrice) {
+  const rate = Math.abs((((endPrice - startPrice) / startPrice) * 100).toFixed(2));
+  if (direction === 'long') {
+    if (startPrice > endPrice) {
+      return -rate;
+    } else {
+      return rate;
+    }
+  } else if (direction === 'short') {
+    if (startPrice < endPrice) {
+      return -rate;
+    } else {
+      return rate;
+    }
+  }
 }
 
 function Practice() {
@@ -28,8 +45,7 @@ function Practice() {
   const storageDataRef = useRef([]);
   const chartRef = useRef(null);
 
-  const getPreOrNextTime = (time, type) => {
-    const { interval } = values;
+  const getPreOrNextTime = (time, interval, type) => {
     const intervalTime = intervalTimeMapping[interval];
     const count = 100;
     if (type === 'pre') {
@@ -41,15 +57,15 @@ function Practice() {
   };
 
   const getKLineData = ({ type, currentTime, interval, symbol }) => {
-    const startTime = null;
-    const endTime = null;
+    let startTime = null;
+    let endTime = null;
     if (type === 'pre') {
-      startTime = getPreOrNextTime(currentTime, 'pre');
-      endTime = currentTime;
+      startTime = getPreOrNextTime(currentTime, interval, 'pre');
+      endTime = currentTime - 1;
     }
     if (type === 'next') {
       startTime = currentTime;
-      endTime = getPreOrNextTime(currentTime, 'next');
+      endTime = getPreOrNextTime(currentTime, interval, 'next') - 1;
     }
     return getKLine({
       symbol,
@@ -59,11 +75,10 @@ function Practice() {
     });
   };
 
-  const getNextData = () => {
+  const getNextData = (values) => {
     getKLineData({
       ...values,
-      type: 'next',
-      currentTime,
+      type: 'next'
     }).then((data) => {
       storageDataRef.current = data;
     });
@@ -71,21 +86,29 @@ function Practice() {
 
   const onFinish = (values) => {
     const currentTime = randomCurrentTime();
-    setValues(values);
+    const { symbol, interval } = values;
+    const newValues = {
+      symbol: symbol[0],
+      interval: interval[0]
+    }
+    setValues(newValues);
     setCurrentTime(currentTime);
     getKLineData({
-      ...values,
+      symbol: symbol[0],
+      interval: interval[0],
       type: 'pre',
       currentTime,
     }).then((data) => {
       chartRef?.current?.initChart(data);
-      getNextData();
     });
+    getNextData({ ...newValues, currentTime });
   };
 
   const updateNextData = () => {
+    const { interval } = values;
     const time = intervalTimeMapping[values[interval]];
-    chartRef?.current?.update(storageDataRef.current.shift());
+    const item = storageDataRef.current.shift();
+    chartRef?.current?.updateChart(item);
     setCurrentTime(currentTime + time);
   };
 
@@ -100,6 +123,7 @@ function Practice() {
   };
 
   const onBuy = () => {
+    const currentPrice = chartRef.current.getCurrentPrice();
     if (!tradingPosition) {
       // 开多
       setTradingPosition({
@@ -114,13 +138,17 @@ function Practice() {
           {
             ...tradingPosition,
             endPrice: currentPrice,
+            rate: calc(tradingPosition.direction, tradingPosition.startPrice, currentPrice)
           },
         ]);
+        setTradingPosition(null);
       }
     }
+    chartRef.current.setMarker('buy');
   };
 
   const onSale = () => {
+    const currentPrice = chartRef.current.getCurrentPrice();
     if (!tradingPosition) {
       // 开空
       setTradingPosition({
@@ -135,10 +163,13 @@ function Practice() {
           {
             ...tradingPosition,
             endPrice: currentPrice,
+            rate: calc(tradingPosition.direction, tradingPosition.startPrice, currentPrice)
           },
         ]);
+        setTradingPosition(null);
       }
     }
+    chartRef.current.setMarker('sale');
   };
 
   return (
@@ -165,14 +196,14 @@ function Practice() {
         <Form.Item name="interval" label="Interval">
           <Selector
             options={[
-              { label: '15min', value: '15min' },
+              { label: '15min', value: '15m' },
               { label: '1h', value: '1h' },
               { label: '4h', value: '4h' },
             ]}
           />
         </Form.Item>
       </Form>
-      <Chart ref={chartRef} data={chartData} />
+      <Chart ref={chartRef} />
       <Button
         style={{ marginLeft: 16 }}
         color="primary"
@@ -195,22 +226,24 @@ function Practice() {
         size="large"
         onClick={onSale}
       >
-        Sell
+        Sale
       </Button>
-
-      <H1>TradeRecord</H1>
+      <h1>TradeRecord</h1>
       <div>
         {tradeRecords.map((record) => {
           return (
-            <div>
-              <div>方向：{record.direction}</div>
+            <div style={{display: 'flex', flexDirection: 'row', fontSize: 16}}>
+              <div>direction：{record.direction}</div>
               <div>startPrice：{record.startPrice}</div>
               <div>endPrice：{record.endPrice}</div>
-              <div>rate：{record.direction}</div>
+              <div>rate：{record.rate}%</div>
             </div>
           );
         })}
       </div>
+      <Button onClick={() => {
+        alert(JSON.stringify(tradeRecords))
+      }}>getRecordsJSON</Button>
     </div>
   );
 }

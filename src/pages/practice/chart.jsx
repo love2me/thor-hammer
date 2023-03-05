@@ -6,6 +6,8 @@ import { useImperativeHandle } from 'react';
 function Chart({ data }, ref) {
   const chartRef = useRef(null);
   const candlestickSeriesRef = useRef(null);
+  const dataRef = useRef([]);
+  const markerRef = useRef([]);
   React.useEffect(() => {
     const chartOptions = { 
       layout: { 
@@ -32,12 +34,37 @@ function Chart({ data }, ref) {
 
   useImperativeHandle(ref, () => ({
     initChart: (data) => {
-      console.log(data,'debugger');
       candlestickSeriesRef.current?.setData(data);
+      dataRef.current = data;
       chartRef.current.timeScale().fitContent();
     },
-    updateChart: () => {
-
+    updateChart: (data) => {
+      candlestickSeriesRef.current?.update(data);
+      dataRef.current.push(data);
+    },
+    getCurrentPrice: () => {
+      return dataRef.current[dataRef.current.length - 1].close;
+    },
+    setMarker: (type) => {
+      const last = dataRef.current[dataRef.current.length - 1];
+      if (type === 'sale') {
+        markerRef.current.push({
+          time: last.time,
+          position: 'aboveBar',
+          color: '#e91e63',
+          shape: 'arrowDown',
+          text: 'Sell @ ' + last.close,
+        });
+      } else if (type === 'buy') {
+        markerRef.current.push({
+          time: last.time,
+          position: 'belowBar',
+          color: '#2196F3',
+          shape: 'arrowUp',
+          text: 'Buy @ ' + last.close,
+        });
+      }
+      candlestickSeriesRef.current?.setMarkers(markerRef.current);
     }
   }), [])
 
