@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Chart from './chart';
-import { Form, Button, Selector } from 'antd-mobile';
+import { Form, Button, Selector, Toast } from 'antd-mobile';
 import dayjs from 'dayjs';
-import { getKLine, getFeishuTenatToken } from './request';
+import { getKLine, postFeishuTableData } from './request';
 import { useRef } from 'react';
 
 const now = new Date();
@@ -190,8 +190,9 @@ function Practice() {
   };
 
   const sendRecordToFeishu = () => {
-    console.log(JSON.stringify({records: parseFeishuRecord(tradeRecords, values.symbol)}));
-    // postFeishuTableData(parseFeishuRecord(tradeRecords));
+    postFeishuTableData(parseFeishuRecord(tradeRecords)).then(() => {
+      Toast.show('发送成功')
+    });
   }
   return (
     <div>
