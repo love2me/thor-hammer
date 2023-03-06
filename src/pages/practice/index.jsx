@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Chart from './chart';
 import { Form, Button, Selector } from 'antd-mobile';
 import dayjs from 'dayjs';
-import { getKLine } from './request';
+import { getKLine, getFeishuTenatToken } from './request';
 import { useRef } from 'react';
 
 const now = new Date();
@@ -172,6 +172,9 @@ function Practice() {
     chartRef.current.setMarker('sale');
   };
 
+  const sendRecordToFeishu = () => {
+    getFeishuTenatToken()
+  }
   return (
     <div>
       <Form
@@ -244,6 +247,7 @@ function Practice() {
       <Button onClick={() => {
         alert(JSON.stringify(tradeRecords))
       }}>getRecordsJSON</Button>
+      <Button onClick={sendRecordToFeishu}>sendRecordToFeishu</Button>
     </div>
   );
 }
