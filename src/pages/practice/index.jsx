@@ -37,6 +37,19 @@ function calc(direction, startPrice, endPrice) {
   }
 }
 
+function parseFeishuRecord(records, symbol) {
+  return records.map((item) => ({
+    fields: {
+      '品种': symbol,
+      '开仓时间': item.startTime * 1000,
+      '平仓时间': item.endTime * 1000,
+      '开仓价': item.startPrice,
+      '平仓价': item.endPrice,
+      '收益率': item.rate,
+    }
+  }))
+}
+
 function Practice() {
   const [values, setValues] = useState({});
   const [currentTime, setCurrentTime] = useState(null);
@@ -123,12 +136,13 @@ function Practice() {
   };
 
   const onBuy = () => {
-    const currentPrice = chartRef.current.getCurrentPrice();
+    const { close: currentPrice, time: currentTime } = chartRef.current.getCurrentItem();
     if (!tradingPosition) {
       // 开多
       setTradingPosition({
         direction: 'long',
         startPrice: currentPrice,
+        startTime: currentTime
       });
     } else {
       // 平空
@@ -138,6 +152,7 @@ function Practice() {
           {
             ...tradingPosition,
             endPrice: currentPrice,
+            endTime: currentTime,
             rate: calc(tradingPosition.direction, tradingPosition.startPrice, currentPrice)
           },
         ]);
@@ -148,12 +163,13 @@ function Practice() {
   };
 
   const onSale = () => {
-    const currentPrice = chartRef.current.getCurrentPrice();
+    const { close: currentPrice, time: currentTime } = chartRef.current.getCurrentItem();
     if (!tradingPosition) {
       // 开空
       setTradingPosition({
         direction: 'short',
         startPrice: currentPrice,
+        startTime: currentTime
       });
     } else {
       // 平多
@@ -163,6 +179,7 @@ function Practice() {
           {
             ...tradingPosition,
             endPrice: currentPrice,
+            endTime: currentTime,
             rate: calc(tradingPosition.direction, tradingPosition.startPrice, currentPrice)
           },
         ]);
@@ -173,7 +190,8 @@ function Practice() {
   };
 
   const sendRecordToFeishu = () => {
-    getFeishuTenatToken()
+    console.log(JSON.stringify({records: parseFeishuRecord(tradeRecords, values.symbol)}));
+    // postFeishuTableData(parseFeishuRecord(tradeRecords));
   }
   return (
     <div>

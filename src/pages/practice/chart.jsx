@@ -42,8 +42,8 @@ function Chart({ data }, ref) {
       candlestickSeriesRef.current?.update(data);
       dataRef.current.push(data);
     },
-    getCurrentPrice: () => {
-      return dataRef.current[dataRef.current.length - 1].close;
+    getCurrentItem: () => {
+      return dataRef.current[dataRef.current.length - 1]
     },
     setMarker: (type) => {
       const last = dataRef.current[dataRef.current.length - 1];

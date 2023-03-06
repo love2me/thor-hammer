@@ -51,16 +51,12 @@ export function postFeishuTableData (data) {
   return getFeishuTenatToken().then((token) => {
     axios({
       method: 'post',
-      url: 'https://open.feishu.cn/open-apis/bitable/v1/apps/bascnA92KPOsGmWsXTpMfRPmAzf/tables/tblSvcvIgvEMT57k/records/batch_create',
+      url: 'https://open.feishu.cn/open-apis/bitable/v1/apps/bascnA92KPOsGmWsXTpMfRPmAzf/tables/tblnTQeCq0klxdiZ/records/batch_create',
       headers: {
         Authorization: `Bearer ${token}`
       },
       data: {
-        records: [{
-          fields: {
-  
-          }
-        }]
+        records: data
       }
     })
   }) 
