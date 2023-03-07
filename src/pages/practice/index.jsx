@@ -190,7 +190,7 @@ function Practice() {
   };
 
   const sendRecordToFeishu = () => {
-    postFeishuTableData(parseFeishuRecord(tradeRecords)).then(() => {
+    postFeishuTableData(parseFeishuRecord(tradeRecords, values.symbol)).then(() => {
       Toast.show('发送成功')
     });
   }
