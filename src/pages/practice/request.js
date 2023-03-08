@@ -53,7 +53,7 @@ const kline = {
   low: 21840.13,
   open: 22141.79
 }
-function getKLineDirection ({ open, close}) {
+function getKLineDirection ({ open, close }) {
   if (open >= close) {
     return 'down'
   }
@@ -63,11 +63,49 @@ function getKLineDirection ({ open, close}) {
 function getHammerLineDirection () {
 
 }
+/**
+ * 是否为锤子线
+ * @param param0 
+ * @returns 
+ */
 function isHammerLine({ open, close, high, low }) {
+  const direction = getKLineDirection({ open, close });
+  // 实体
   const entity = Math.abs(open - close);
-  const downValue = Math.abs(low - close);
-  const upValue = Math.abs(high - close);
-  
+  if (direction === 'up') {
+    // 上影线
+    const upShadowLine = high - close;
+    // 下影线
+    const downShadowLine = open - low;
+
+    const upShadowLineTimes = upShadowLine / entity;
+    const downShadowLineTimes = downShadowLine / entity;
+
+    if (downShadowLineTimes > 3 && upShadowLineTimes < 0.617) {
+      return true;
+    }
+  } else if (direction === 'down') {
+    // 上影线
+    const upShadowLine = high - open;
+    // 下影线
+    const downShadowLine = close - low;
+
+    const upShadowLineTimes = upShadowLine / entity;
+    const downShadowLineTimes = downShadowLine / entity;
+
+    if (upShadowLineTimes > 3 && downShadowLineTimes < 0.617) {
+      return true;
+    }
+  }
+
+  return false;
+}
+/**
+ * 是否为实体线
+ * @param {*} data 
+ */
+function isEntityLine({ open, close, high, low }) {
+
 }
 
 function getIndicator(data) {
