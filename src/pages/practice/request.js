@@ -46,3 +46,53 @@ export function postFeishuTableData (records) {
     }
   })
 }
+
+const kline = {
+  close: 21954.98,
+  high: 22147.73,
+  low: 21840.13,
+  open: 22141.79
+}
+function getKLineDirection ({ open, close}) {
+  if (open >= close) {
+    return 'down'
+  }
+  return 'up';
+}
+
+function getHammerLineDirection () {
+
+}
+function isHammerLine({ open, close, high, low }) {
+  const entity = Math.abs(open - close);
+  const downValue = Math.abs(low - close);
+  const upValue = Math.abs(high - close);
+  
+}
+
+function getIndicator(data) {
+  
+}
+// const symbols = ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'SOLUSDT', 'MATICUSDT', 'LTCUSDT', 'BNBUSDT', 'SHIBUSDT', 'CFXUSDT', 'OPUSDT', 'ADAUSDT', 'DOGEUSDT', 'FILUSDT', 'LINKUSDT', 'DOTUSDT', 'APTUSDT', 'TRXUSDT', 'FTMUSDT', 'LDOUSDT', 'AVAXUSDT', 'EOSUSDT', 'SANDUSDT', 'AGIXUSDT', 'MASKUSDT', 'GALAUSDT', 'DYDXUSDT', 'ETCUSDT', 'ATOMUSDT', 'DASHUSDT', 'NEARUSDT', 'UNIUSDT', 'APEUSDT', 'SNXUSDT', 'MANAUSDT', 'CRVUSDT', 'YFIUSDT', 'GMTUSDT', 'XMRUSDT', 'AAVEUSDT', 'WAVESUSDT'];
+const symbols = ['BTCUSDT'];
+let totalCnt = 0;
+const datas = [];
+
+// symbols.forEach((symbol) => {
+//   getKLine({
+//     symbol,
+//     interval: '1h',
+//     limit: 10
+//   }).then((data) => {
+//     datas.push({
+//       symbol,
+//       indicator: getIndicator(data),
+//       meta: data,
+//     });
+//   }).finally(() => {
+//     totalCnt++;
+//     if (totalCnt === symbols.length) {
+//       console.log(datas, 'debugger');
+//     }
+//   })
+// });
