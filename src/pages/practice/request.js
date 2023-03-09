@@ -129,7 +129,7 @@ function checkHammerIndicator(data) {
   }
 }
 
-function getIndicator(data) {
+export function getIndicator(data) {
   const { is: isHammerLine, direction: hammerLineDirection} = checkHammerIndicator(data);
   return {
     isHammerLine,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Chart from './chart';
 import { Form, Button, Selector, Toast } from 'antd-mobile';
 import dayjs from 'dayjs';
-import { getKLine, postFeishuTableData } from './request';
+import { getKLine, postFeishuTableData, getIndicator } from './request';
 import { useRef } from 'react';
 
 const now = new Date();
@@ -63,7 +63,7 @@ function Practice() {
 
   const getPreOrNextTime = (time, interval, type) => {
     const intervalTime = intervalTimeMapping[interval];
-    const count = 100;
+    const count = 200;
     if (type === 'pre') {
       return time - intervalTime * count;
     }
@@ -116,6 +116,12 @@ function Practice() {
       currentTime,
     }).then((data) => {
       chartRef?.current?.initChart(data);
+      for (let i = (data.length - 1);i > 0;i--) {
+        const { isHammerLine } = getIndicator([data[i], data[i - 1]]);
+        if (isHammerLine) {
+          chartRef?.current?.setHammerLineMarker(data[i].time);
+        }
+      }
     });
     getNextData({ ...newValues, currentTime });
   };
@@ -170,7 +176,7 @@ function Practice() {
         setTradingPosition(null);
       }
     }
-    chartRef.current.setMarker('buy');
+    chartRef.current.setTradeMarker('buy');
   };
 
   const onSale = () => {
@@ -202,7 +208,7 @@ function Practice() {
         setTradingPosition(null);
       }
     }
-    chartRef.current.setMarker('sale');
+    chartRef.current.setTradeMarker('sale');
   };
 
   const sendRecordToFeishu = () => {

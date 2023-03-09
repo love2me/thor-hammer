@@ -45,7 +45,7 @@ function Chart({ data }, ref) {
     getCurrentItem: () => {
       return dataRef.current[dataRef.current.length - 1]
     },
-    setMarker: (type) => {
+    setTradeMarker: (type) => {
       const last = dataRef.current[dataRef.current.length - 1];
       if (type === 'sale') {
         markerRef.current.push({
@@ -64,6 +64,16 @@ function Chart({ data }, ref) {
           text: 'Buy @ ' + last.close,
         });
       }
+      candlestickSeriesRef.current?.setMarkers(markerRef.current);
+    },
+    setHammerLineMarker: ({ time }) => {
+      markerRef.current.push({
+        time,
+        position: 'belowBar',
+        color: '#2196F3',
+        shape: 'arrowUp',
+        text: 'HammerLine @ ',
+      });
       candlestickSeriesRef.current?.setMarkers(markerRef.current);
     }
   }), [])
