@@ -47,12 +47,6 @@ export function postFeishuTableData (records) {
   })
 }
 
-const kline = {
-  close: 21954.98,
-  high: 22147.73,
-  low: 21840.13,
-  open: 22141.79
-}
 function getKLineDirection ({ open, close }) {
   if (open >= close) {
     return 'down'
@@ -60,77 +54,111 @@ function getKLineDirection ({ open, close }) {
   return 'up';
 }
 
-function getHammerLineDirection () {
-
+function parseLineBaseInfo ({ open, close, high, low }) {
+  const direction = getKLineDirection({ open, close });
+  // 实体
+  const entity = open - close;
+  let upShadowLine = null;
+  let downShadowLine = null;
+  if (direction === 'up') {
+    // 上影线
+    upShadowLine = high - close;
+    // 下影线
+    downShadowLine = open - low;
+  } else if (direction === 'down') {
+    // 上影线
+    upShadowLine = high - open;
+    // 下影线
+    downShadowLine = close - low;
+  }
+  return {
+    direction,
+    entity: Math.abs(entity),
+    upShadowLine: Math.abs(upShadowLine),
+    downShadowLine: Math.abs(downShadowLine),
+  }
 }
 /**
- * 是否为锤子线
+ * 检查是否为锤子线
  * @param param0 
  * @returns 
  */
-function isHammerLine({ open, close, high, low }) {
-  const direction = getKLineDirection({ open, close });
-  // 实体
-  const entity = Math.abs(open - close);
-  if (direction === 'up') {
-    // 上影线
-    const upShadowLine = high - close;
-    // 下影线
-    const downShadowLine = open - low;
+function checkHammerLine({ open, close, high, low }) {
+  const { entity, upShadowLine, downShadowLine } = parseLineBaseInfo({ open, close, high, low })
 
-    const upShadowLineTimes = upShadowLine / entity;
-    const downShadowLineTimes = downShadowLine / entity;
+  const upShadowLineTimes = upShadowLine / entity;
+  const downShadowLineTimes = downShadowLine / entity;
 
-    if (downShadowLineTimes > 3 && upShadowLineTimes < 0.617) {
-      return true;
-    }
-  } else if (direction === 'down') {
-    // 上影线
-    const upShadowLine = high - open;
-    // 下影线
-    const downShadowLine = close - low;
-
-    const upShadowLineTimes = upShadowLine / entity;
-    const downShadowLineTimes = downShadowLine / entity;
-
-    if (upShadowLineTimes > 3 && downShadowLineTimes < 0.617) {
-      return true;
-    }
+  // 上涨锤子线
+  let isUpHammmerLine = downShadowLineTimes > 3 && upShadowLineTimes < 0.617;
+  // 下跌上影线
+  let isDownHammmerLine = upShadowLineTimes > 3 && downShadowLineTimes < 0.617;
+  
+  let direction = null;
+  if (isUpHammmerLine) {
+    direction = 'up';
+  } else if (isDownHammmerLine) {
+    direction = 'down';
   }
-
-  return false;
+  return {
+    direction,
+    is: isUpHammmerLine || isDownHammmerLine,
+  }
 }
 /**
- * 是否为实体线
+ * 检查是否为实体线
  * @param {*} data 
  */
-function isEntityLine({ open, close, high, low }) {
+function checkEntityLine({ open, close, high, low }) {
+  const { direction, entity, upShadowLine, downShadowLine } = parseLineBaseInfo({ open, close, high, low });
+  // 实体长度要大于上影线 + 下影线两倍以上
+  const is = (entity / (upShadowLine + downShadowLine)) > 2;
+  return {
+    direction,
+    is
+  }
+}
 
+function checkHammerIndicator(data) {
+  const [one, two] = data.slice(-2);
+  const hammerLine = checkHammerLine(one);
+  const entityLine = checkEntityLine(two);
+  return {
+    is: hammerLine.is && entityLine.is && hammerLine.direction === entityLine.direction,
+    direction: hammerLine.direction
+  }
 }
 
 function getIndicator(data) {
-  
+  const { is: isHammerLine, direction: hammerLineDirection} = checkHammerIndicator(data);
+  return {
+    isHammerLine,
+    hammerLineDirection
+  }
 }
-// const symbols = ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'SOLUSDT', 'MATICUSDT', 'LTCUSDT', 'BNBUSDT', 'SHIBUSDT', 'CFXUSDT', 'OPUSDT', 'ADAUSDT', 'DOGEUSDT', 'FILUSDT', 'LINKUSDT', 'DOTUSDT', 'APTUSDT', 'TRXUSDT', 'FTMUSDT', 'LDOUSDT', 'AVAXUSDT', 'EOSUSDT', 'SANDUSDT', 'AGIXUSDT', 'MASKUSDT', 'GALAUSDT', 'DYDXUSDT', 'ETCUSDT', 'ATOMUSDT', 'DASHUSDT', 'NEARUSDT', 'UNIUSDT', 'APEUSDT', 'SNXUSDT', 'MANAUSDT', 'CRVUSDT', 'YFIUSDT', 'GMTUSDT', 'XMRUSDT', 'AAVEUSDT', 'WAVESUSDT'];
-const symbols = ['BTCUSDT'];
-let totalCnt = 0;
-const datas = [];
 
-// symbols.forEach((symbol) => {
-//   getKLine({
-//     symbol,
-//     interval: '1h',
-//     limit: 10
-//   }).then((data) => {
-//     datas.push({
-//       symbol,
-//       indicator: getIndicator(data),
-//       meta: data,
-//     });
-//   }).finally(() => {
-//     totalCnt++;
-//     if (totalCnt === symbols.length) {
-//       console.log(datas, 'debugger');
-//     }
-//   })
-// });
+function getSymbolsData () {
+  const symbols = ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'SOLUSDT', 'MATICUSDT', 'LTCUSDT', 'BNBUSDT', 'SHIBUSDT', 'CFXUSDT', 'OPUSDT', 'ADAUSDT', 'DOGEUSDT', 'FILUSDT', 'LINKUSDT', 'DOTUSDT', 'APTUSDT', 'TRXUSDT', 'FTMUSDT', 'LDOUSDT', 'AVAXUSDT', 'EOSUSDT', 'SANDUSDT', 'AGIXUSDT', 'MASKUSDT', 'GALAUSDT', 'DYDXUSDT', 'ETCUSDT', 'ATOMUSDT', 'DASHUSDT', 'NEARUSDT', 'UNIUSDT', 'APEUSDT', 'SNXUSDT', 'MANAUSDT', 'CRVUSDT', 'YFIUSDT', 'GMTUSDT', 'XMRUSDT', 'AAVEUSDT', 'WAVESUSDT'];
+  let totalCnt = 0;
+  const datas = [];
+  return new Promise((resolve, reject) => {
+    symbols.forEach((symbol) => {
+      getKLine({
+        symbol,
+        interval: '1h',
+        limit: 2
+      }).then((data) => {
+        datas.push({
+          symbol,
+          indicator: getIndicator(data),
+          meta: data,
+        });
+      }).finally(() => {
+        totalCnt++;
+        if (totalCnt === symbols.length) {
+          resolve(datas);
+        }
+      })
+    });
+  })
+}
