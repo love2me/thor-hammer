@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Chart from './chart';
 import { Form, Button, Selector, Toast } from 'antd-mobile';
 import dayjs from 'dayjs';
-import { getKLine, postFeishuTableData, getIndicator } from './request';
+import { getKLine, postFeishuTableData } from '../../apis';
 import { useRef } from 'react';
 
 const now = new Date();
@@ -116,12 +116,6 @@ function Practice() {
       currentTime,
     }).then((data) => {
       chartRef?.current?.initChart(data);
-      for (let i = (data.length - 1);i > 0;i--) {
-        const { isHammerLine } = getIndicator([data[i], data[i - 1]]);
-        if (isHammerLine) {
-          chartRef?.current?.setHammerLineMarker(data[i].time);
-        }
-      }
     });
     getNextData({ ...newValues, currentTime });
   };

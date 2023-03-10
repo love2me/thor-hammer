@@ -33,38 +33,17 @@ function Chart({ data }, ref) {
   }, []);
 
   useImperativeHandle(ref, () => ({
+    reset: () => {
+      markerRef.current = [];
+      candlestickSeriesRef.current?.setMarkers(markerRef.current);
+    },
     initChart: (data) => {
       candlestickSeriesRef.current?.setData(data);
       dataRef.current = data;
       chartRef.current.timeScale().fitContent();
     },
-    updateChart: (data) => {
-      candlestickSeriesRef.current?.update(data);
-      dataRef.current.push(data);
-    },
     getCurrentItem: () => {
       return dataRef.current[dataRef.current.length - 1]
-    },
-    setTradeMarker: (type) => {
-      const last = dataRef.current[dataRef.current.length - 1];
-      if (type === 'sale') {
-        markerRef.current.push({
-          time: last.time,
-          position: 'aboveBar',
-          color: '#e91e63',
-          shape: 'arrowDown',
-          text: 'Sell @ ' + last.close,
-        });
-      } else if (type === 'buy') {
-        markerRef.current.push({
-          time: last.time,
-          position: 'belowBar',
-          color: '#2196F3',
-          shape: 'arrowUp',
-          text: 'Buy @ ' + last.close,
-        });
-      }
-      candlestickSeriesRef.current?.setMarkers(markerRef.current);
     },
     setLineMarker: ({ time, text }) => {
       markerRef.current.push({
