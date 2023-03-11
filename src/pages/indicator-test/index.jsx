@@ -5,10 +5,11 @@ import Chart from './chart';
 import { getKLine, postFeishuTableData, urlParams } from '../../apis';
 
 function randomCurrentTime() {
-  const year = Math.floor(2020 + Math.random() * 3);
+  const year = Math.floor(2019 + Math.random() * 3);
   const month = Math.floor(1 + Math.random() * 11);
   const day = Math.floor(1 + Math.random() * 29);
-  return new Date(`${year}-${month}-${day} 00:00:00`).getTime();
+  const hour = Math.floor(Math.random() * 23)
+  return new Date(`${year}-${month}-${day} ${hour}:00:00`).getTime();
 }
 
 const backTestRecordCache = {};
