@@ -1,8 +1,23 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Button, Toast } from 'antd-mobile';
-import { setMarker, backTest } from './indicators/hammer-line';
+import { setMarker as hammerLineSetMarker, backTest as hammerLineBackTest } from './indicators/hammer-line';
+import { setMarker as engulfLineSetMarker, backTest as engulfLineBackTest } from './indicators/engulf-line';
 import Chart from './chart';
 import { getKLine, postFeishuTableData, urlParams } from '../../apis';
+
+const fnMpping = {
+  setMarker: {
+    hammerLine: hammerLineSetMarker,
+    engulfLine: engulfLineSetMarker
+  },
+  backTest: {
+    hammerLine: hammerLineBackTest,
+    engulfLine: engulfLineBackTest
+  }
+}
+
+const setMarker = fnMpping.setMarker[urlParams.get('indicator')];
+const backTest = fnMpping.backTest[urlParams.get('indicator')];
 
 function randomCurrentTime() {
   const year = Math.floor(2019 + Math.random() * 3);
