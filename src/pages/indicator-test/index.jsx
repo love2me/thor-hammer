@@ -23,7 +23,7 @@ export default function Test() {
     setLoading(true);
     getKLine({
       symbol: 'BTCUSDT',
-      interval: '1h',
+      interval: (urlParams.get('interval') || '1h'),
       startTime: randomCurrentTime(),
       limit: 500,
     })
