@@ -6,6 +6,7 @@ import { useImperativeHandle } from 'react';
 function Chart({ data }, ref) {
   const chartRef = useRef(null);
   const candlestickSeriesRef = useRef(null);
+  const lineSeriesRef = useRef(null);
   const dataRef = useRef([]);
   const markerRef = useRef([]);
   React.useEffect(() => {
@@ -29,7 +30,11 @@ function Chart({ data }, ref) {
         upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
         wickUpColor: '#26a69a', wickDownColor: '#ef5350',
     });
+
+    const lineSeries = chart.addLineSeries({ color: '#2962FF', lineWidth: 1 });
+
     candlestickSeriesRef.current = candlestickSeries;
+    lineSeriesRef.current = lineSeries;
   }, []);
 
   useImperativeHandle(ref, () => ({
@@ -37,6 +42,10 @@ function Chart({ data }, ref) {
       candlestickSeriesRef.current?.setData(data);
       dataRef.current = data;
       chartRef.current.timeScale().fitContent();
+    },
+    initLine: (data) => {
+      lineSeriesRef.current.setData(data);
+      // chartRef.current.timeScale().fitContent();
     },
     updateChart: (data) => {
       candlestickSeriesRef.current?.update(data);
