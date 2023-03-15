@@ -4,11 +4,12 @@ import { Form, Button, Selector, Toast } from 'antd-mobile';
 import dayjs from 'dayjs';
 import { getKLine, postFeishuTableData } from '../../apis';
 import { useRef } from 'react';
-import { EMA } from 'bfx-hf-indicators'; 
+import { EMA, OBV } from 'bfx-hf-indicators'; 
 
 
 const now = new Date();
-const ema = new EMA([14])
+const ema = new EMA([10]);
+const obv = new OBV([10]);
 
 const intervalTimeMapping = {
   '15min': 900000,
@@ -130,8 +131,17 @@ function Practice() {
           value: ema._values[idx]
         }
       })
-      console.log(ema._values, lineData, 'debugger');
-      chartRef?.current?.initLine(lineData)
+      const obvData = data.map((item) => {
+        obv.add(item);
+        return {
+          time: item.time,
+          value: obv.v() || 0
+        }
+      });
+      chartRef?.current?.initChart(data);
+      console.log(data, obvData, 'debugger');
+      chartRef?.current?.initLine(lineData);
+      chartRef?.current?.initObvLine(obvData)
     });
     getNextData({ ...newValues, currentTime });
   };

@@ -14,6 +14,7 @@ function parseChartData(data, symbol) {
     const high = +kline[2];
     const low = +kline[3];
     const close = +kline[4];
+    const volume = +kline[5]
     return {
       symbol,
       time,
@@ -21,6 +22,7 @@ function parseChartData(data, symbol) {
       high,
       low,
       close,
+      volume
     };
   });
 }
